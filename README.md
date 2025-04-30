@@ -80,29 +80,9 @@ blastn https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastn&BLAST_SPEC=GeoBla
 <img width="500" alt="image" src="https://github.com/user-attachments/assets/577debca-6085-47c5-9bbd-73688bfa8bb0" />
 
 
-## 2. Análisis de calidad de archivos FASTQ de Illumina
-
-## 2. Obtención de los datos de secuenciación 
-
-```bash
-cd ~/genomics/raw_data
-
-### Datos de Illumina
-
-gdown https://drive.google.com/uc?id=1fdMqDwYgCY3mzSkhUW1SZANlBA71MY7X
-
-gdown https://drive.google.com/uc?id=12aOQWJk7rvDbssb44O3qNn9pRo641H7C
-
-### Datos de Nanopore
-
-gdown https://drive.google.com/uc?id=1hjDKjprl7yhbnoPP7dTOBZVCjN88QVbH
-
-### Genomas de referencia
-
-gdown https://drive.google.com/uc?id=11ERl-rWpOnXR54ZelpdDLJIMONodbURC
-```
-
 ## 3. Ensamblaje de genomas de datos de secuenciación Illumina
+
+### Crear los directorias de trabajo
 
 ```bash
 cd ~/genomics
@@ -114,13 +94,26 @@ cd assembly
 mkdir illumina
 
 cd illumina
-
-conda activate assembly
+```
 
 ### Ensamblaje de novo del genoma con unicycler
 
-unicycler -t 2 -1 /home/ins_user/genomics/raw_data/SRR19551969_R1.trim.fastq.gz -2 /home/ins_user/genomics/raw_data/SRR19551969_R2.trim.fastq.gz -o m01_unicycler_illumina
+```bash
+conda activate unicycler
 
+unicycler -t 10 --kmers 27,53,71,87,99,111,119,127 -1 /data/2025_1/database/illumina/SRR19551969_R1.trim.fastq.gz -2 /data/2025_1/database/illumina/SRR19551969_R2.trim.fastq.gz -o m01_unicycler_illumina
+```
+
+> **Comentario:** 
+> - `-t 10`: Estás pidiendo a Unicycler que utilice hasta 10 hilos (núcleos de CPU) para el proceso de ensamblaje. Esto puede ayudar a acelerar las cosas.
+> - `--kmers 27,53,71,87,99,111,119,127`: Esta opción proporciona una estimación del tamaño del genoma que se va a ensamblar. Estás proporcionando una lista específica de tamaños de k-meros para que Unicycler los utilice. Los k-meros son secuencias cortas de ADN que se utilizan en el proceso de ensamblaje. Proporcionar un rango de k-meros a veces puede mejorar la calidad del ensamblaje, especialmente para genomas complejos.
+> - `-1 /data/2025_1/database/illumina/SRR19551969_R1.trim.fastq.gz`: Esto especifica la ruta a tu primer archivo de lectura de extremo pareado (forward) en formato FASTQ (que también ha sido recortado). La extensión .gz indica que es un archivo comprimido con gzip, que Unicycler puede manejar directamente.
+> - `-2 /data/2025_1/database/illumina/SRR19551969_R2.trim.fastq.gz`: Esto especifica la ruta a tu segundo archivo de lectura de extremo pareado (reverse), también en formato FASTQ recortado y comprimido con gzip.
+> - `-o m01_unicycler_illumina`: Esto le dice a Unicycler que cree un nuevo directorio de salida llamado m01_unicycler_illumina donde se almacenarán todos los resultados del ensamblaje.
+
+### Cambiar los nombres a los archivos .fasta y .gfa
+
+```bash
 mv m01_unicycler_illumina/assembly.fasta m01_unicycler.fasta
 
 mv m01_unicycler_illumina/assembly.gfa m01_unicycler.gfa

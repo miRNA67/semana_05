@@ -353,7 +353,7 @@ cd taxonomy
 ```bash
 conda activate genome
 
-barrnap ~/genomics/assembly/nanopore/racon/m01_flye.racon.fasta --threads 10 --outseq m01_rna_unicycler.fasta
+barrnap ~/genomics/assembly/nanopore/racon/m01_flye.racon.fasta --threads 10 --outseq m01_rna_flye.fasta
 ```
 
 ```bash

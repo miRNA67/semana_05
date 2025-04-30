@@ -192,13 +192,13 @@ cd racon
 ### Alineamiento de las lecturas de Illumina sobre el genoma ensamblado 
 
 ```bash
-minimap2 -t 10 ~/genomics/assembly/nanopore/m01_flye.fasta /data/2025_1/database/nanopore/fastq/SRR19552033_1_trim.fastq.gz > m01_flye_minimap4racon.paf
+minimap2 -t 10 ~/genomics/assembly/nanopore/m01_flye.fasta /data/2025_1/database/illumina/SRR19551969_R1.trim.fastq.gz > m01_flye_minimap4racon.paf
 ```
 
 > **Comentario:** 
 > - `-t 10`: Estás especificando que Minimap2 utilice 2 threads (hilos) para realizar la alineación. Esto puede acelerar el proceso, aunque puedes aumentar este número si tienes más núcleos de CPU disponibles.
 > - `~/genomics/assembly/nanopore/m01_flye.fasta`: Esta es la ruta al archivo FASTA que contiene los contigs ensamblados por Flye.
-> - `/data/2025_1/database/nanopore/fastq/SRR19552033_1_trim.fastq.gz`: Esta es la ruta al archivo FASTQ.gz que contiene tus lecturas Nanopore trimmeadas. Estas son las mismas lecturas que usaste para el ensamblaje con Flye.
+> - `/data/2025_1/database/illumina/SRR19551969_R1.trim.fastq.gz`: Esta es la ruta al archivo FASTQ.gz que contiene tus lecturas de Illumina trimmeadas. Estas son las mismas lecturas que usaste para el ensamblaje con Unicycler.
 > - `>`: Este símbolo indica una redirección de la salida estándar (STDOUT) del comando.
 > - `m01_flye_minimap4racon.paf`: Este es el nombre del archivo donde se guardará la salida de Minimap2. La extensión .paf indica que la salida estará en formato PAF (Pairwise mApping Format), que es un formato tabular que describe las alineaciones entre las secuencias de consulta (las lecturas Nanopore) y las secuencias objetivo (los contigs de Flye).
 

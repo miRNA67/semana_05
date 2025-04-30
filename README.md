@@ -205,7 +205,7 @@ minimap2 -t 10 ~/genomics/assembly/nanopore/m01_flye.fasta /data/2025_1/database
 ### Pulido del genoma
 
 ```bash
-racon -t 10 /data/2025_1/database/nanopore/fastq/SRR19552033_1_trim.fastq.gz m01_flye_minimap4racon.paf ~/genomics/assembly/nanopore/m01_flye.fasta > m01_flye.racon.fasta
+racon -t 10 /data/2025_1/database/illumina/SRR19551969_R1.trim.fastq.gz m01_flye_minimap4racon.paf ~/genomics/assembly/nanopore/m01_flye.fasta > m01_flye.racon.fasta
 ```
 
 > **Comentario:** 

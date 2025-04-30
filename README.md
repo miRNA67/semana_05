@@ -49,6 +49,9 @@ Quast v5.2.0 http://quast.sourceforge.net/
 Racon v1.5.0 https://github.com/lbcb-sci/racon
    - **Descripción:** Racon es una herramienta para el pulido (polishing) de ensamblajes de genomas, especialmente aquellos generados a partir de lecturas largas. Utiliza las lecturas originales para corregir errores y mejorar la precisión del ensamblaje final.
 
+Unicycler v0.5.1 https://github.com/rrwick/Unicycler
+   - **Descripción:** Unicycler es una herramienta bioinformática de código abierto diseñada para ensamblar genomas bacterianos (y otros genomas pequeños) a partir de datos de secuenciación. Su principal fortaleza radica en su capacidad para manejar conjuntos de datos híbridos, que combinan lecturas cortas y precisas (como las de Illumina) con lecturas largas que abarcan más distancia (como las de Oxford Nanopore o PacBio). Al aprovechar las ventajas de ambos tipos de datos, Unicycler puede generar ensamblajes más completos y contiguos, especialmente en regiones complejas como repeticiones.
+     
 ### Herramientas bioinformáticas en línea:
 
 16S-based ID https://www.google.com/search?q=https://www.ezbiocloud.net/identify
@@ -82,7 +85,7 @@ blastn https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastn&BLAST_SPEC=GeoBla
 
 ## 3. Ensamblaje de genomas de datos de secuenciación Illumina
 
-### Crear los directorias de trabajo
+### Crear los directorios de trabajo
 
 ```bash
 cd ~/genomics
@@ -111,7 +114,7 @@ unicycler -t 10 --kmers 27,53,71,87,99,111,119,127 -1 /data/2025_1/database/illu
 > - `-2 /data/2025_1/database/illumina/SRR19551969_R2.trim.fastq.gz`: Esto especifica la ruta a tu segundo archivo de lectura de extremo pareado (reverse), también en formato FASTQ recortado y comprimido con gzip.
 > - `-o m01_unicycler_illumina`: Esto le dice a Unicycler que cree un nuevo directorio de salida llamado m01_unicycler_illumina donde se almacenarán todos los resultados del ensamblaje.
 
-### Cambiar los nombres a los archivos .fasta y .gfa
+### Cambiar los nombres a los archivos .fasta y .gfa para su posterior exportación
 
 ```bash
 mv m01_unicycler_illumina/assembly.fasta m01_unicycler.fasta
@@ -121,20 +124,26 @@ mv m01_unicycler_illumina/assembly.gfa m01_unicycler.gfa
 
 ## 4. Ensamblaje de genomas de datos de secuenciación Nanopore
 
+### Crear los directorios de trabajo
+
 ```bash
 cd ~/genomics/assembly
 
 mkdir nanopore
 
 cd nanopore
+```
 
 ### Ensamblaje de novo del genoma con flye
 
-flye --nano-raw /home/ins_user/genomics/raw_data/SRR19552033_1_trim.fastq.gz --threads 2 --genome-size 5m --out-dir m01_flye_nanopore
+```bash
+conda activate shotgun
+
+flye --nano-raw /data/2025_1/database/nanopore/fastq/SRR19552033_1_trim.fastq.gz --threads 10 --genome-size 5m --out-dir m01_flye_nanopore
 ```
 
 > **Comentario:** 
-> - `--nano-raw`: Indica que las lecturas son datos de Nanopore (R9).
+> - `--nano-raw`: Indica que las lecturas son datos de Nanopore del tipo R9. Si tus reads son del tipo R10 y han sido basecalleados con un software reciente (como Guppy 5+ con el modelo SUP) y tienen una tasa de error esperada inferior al 5%, podrías considerar usar la opción --nano-hq.
 > - `--genome-size 5m`: Esta opción proporciona una estimación del tamaño del genoma que se va a ensamblar.
 
 ```bash
@@ -145,27 +154,62 @@ contig_1	4809453	104	Y	N	1	*	1
 contig_2	89088	146	Y	N	1	*	2
 contig_3	17975	199	Y	Y	1	*	3
 contig_4	16755	182	Y	N	2	*	4
+```
 
+> **Comentario:** 
+> - `seq_name`: El identificador del contig. En este caso, contig_1, contig_3, contig_4 y contig_2.
+> - `length`: La longitud de cada contig en bases.
+> - `cov.`: La profundidad estimada para cada contig, que indica cuántas veces, en promedio, cada base del contig fue cubierta por las lecturas de entrada. Una profundidad más alta generalmente indica una mayor confianza en la secuencia del contig.
+> - `circ.`: Indica si el contig se predice que es circular (Y para sí, N para no).
+> - `repeat`: Indica si el contig se identificó como una región repetitiva (Y para sí, N para no).
+> - `mult.`: Un factor que indica la multiplicidad estimada de la secuencia en el genoma. Un valor de 1 sugiere una única copia, mientras que valores mayores indican posibles repeticiones.
+> - `alt_group`: Identifica grupos de contigs que representan posibles ensamblajes alternativos de la misma región genómica. Un * indica que no pertenece a ningún grupo alternativo.
+Todos los contigs tienen *, lo que sugiere que Flye no identificó ensamblajes alternativos significativos para estas regiones.
+> - `graph_path`: El índice del camino en el grafo de ensamblaje que corresponde a este contig.
+
+### Cambiar los nombres a los archivos .fasta y .gfa para su posterior exportación
+
+```bash
 mv m01_flye_nanopore/assembly.fasta m01_flye.fasta
 
 mv m01_flye_nanopore/assembly_graph.gfa m01_flye.gfa
 ```
 
+### Crear los directorios de trabajo
+
 ```bash
-cd /home/ins_user/genomics/assembly/nanopore
+cd ~/genomics/assembly/nanopore
 
 mkdir racon
 
 cd racon
+```
 
 ### Alineamiento de las lecturas de Illumina sobre el genoma ensamblado con minimap2
 
-minimap2 -t 2 /home/ins_user/genomics/assembly/nanopore/m01_flye.fasta /home/ins_user/genomics/raw_data/SRR19551969_R1.trim.fastq.gz > flye.minimap4racon1.paf
+```bash
+minimap2 -t 10 ~/genomics/assembly/nanopore/m01_flye.fasta /data/2025_1/database/nanopore/fastq/SRR19552033_1_trim.fastq.gz > m01_flye_minimap4racon.paf
+```
+
+> **Comentario:** 
+> - `-t 10`: Estás especificando que Minimap2 utilice 2 threads (hilos) para realizar la alineación. Esto puede acelerar el proceso, aunque puedes aumentar este número si tienes más núcleos de CPU disponibles.
+> - `~/genomics/assembly/nanopore/m01_flye.fasta`: Esta es la ruta al archivo FASTA que contiene los contigs ensamblados por Flye.
+> - `/data/2025_1/database/nanopore/fastq/SRR19552033_1_trim.fastq.gz`: Esta es la ruta al archivo FASTQ.gz que contiene tus lecturas Nanopore trimmeadas. Estas son las mismas lecturas que usaste para el ensamblaje con Flye.
+> - `>`: Este símbolo indica una redirección de la salida estándar (STDOUT) del comando.
+> - `m01_flye_minimap4racon.paf`: Este es el nombre del archivo donde se guardará la salida de Minimap2. La extensión .paf indica que la salida estará en formato PAF (Pairwise mApping Format), que es un formato tabular que describe las alineaciones entre las secuencias de consulta (las lecturas Nanopore) y las secuencias objetivo (los contigs de Flye).
 
 ### Pulido del genoma con racon
 
+```bash
 racon -t 2 /home/ins_user/genomics/raw_data/SRR19551969_R1.trim.fastq.gz flye.minimap4racon1.paf /home/ins_user/genomics/assembly/nanopore/m01_flye.fasta > m01_flye.racon.fasta
 ```
+
+> **Comentario:** 
+> - ``:
+> - ``:
+> - ``:
+> - ``:
+
 
 ## 5. Obtención de las metricas de los genomas ensamblados
 
@@ -272,97 +316,4 @@ grep ">" m01_rna.fasta
 >5S_rRNA::contig_1:4268675-4268786(-)
 ```
 
-```bash
-### Obtención de los genomas de referencia
 
-unzip /home/ins_user/genomics/raw_data/genomes_ncbi.zip -d .
-
-cp /home/ins_user/genomics/assembly/nanopore/racon/m01_flye.racon.fasta genomes_ncbi
-
-### Análisis ANI (Average Nucleotide Identity)
-
-ANIclustermap -i genomes_ncbi -o ANIclustermap_result --fig_width 20 --fig_height 15 --annotation
-```
-
-> **Comentario:** 
-> - `-i genomes_ncbi`: Especifica el directorio de entrada donde se encuentran los archivos FASTA de los genomas.
-> - `--fig_width 20`: Define el ancho de la figura del mapa de calor en pulgadas.
-> - `--fig_height 15`: Define la altura de la figura del mapa de calor en pulgadas.
-> - `--annotation`: Esta opción indica que se deben agregar anotaciones al mapa de calor. Las anotaciones suelen ser los valores de ANI entre los genomas, lo que facilita la interpretación del mapa.
-
-## 8. Identificación de SNPs
-
-```bash
-cd ~/genomics/
-
-mkdir variant
-
-cd variant
-
-### Identificación de SNPs utilizando snippy
-
-snippy --cpus 2 --outdir m01_snps --report --ref /home/ins_user/genomics/taxonomy/genomes_ncbi/Ssonnei_ATCC29930.fasta --R1 /home/ins_user/genomics/raw_data/SRR19551969_R1.trim.fastq.gz --R2 /home/ins_user/genomics/raw_data/SRR19551969_R2.trim.fastq.gz
-```
-
-```bash
-head -20 m01_snps/snps.txt 
-
-ReadFiles	/home/ins_user/genomics/raw_data/SRR19551969_R1.trim.fastq.gz /home/ins_user/genomics/raw_data/SRR19551969_R2.trim.fastq.gz
-Reference	/home/ins_user/genomics/taxonomy/genomes_ncbi/Ssonnei_ATCC29930.fasta
-ReferenceSize	4994001
-Software	snippy 4.6.0
-Variant-COMPLEX	29
-Variant-DEL	83
-Variant-INS	130
-Variant-SNP	1437
-VariantTotal	1679
-```
-
-```bash
-head -20 m01_snps/snps.tab
-
-CHROM	POS	TYPE	REF	ALT	EVIDENCE	FTYPE	STRAND	NT_POS	AA_POS	EFFECT	LOCUS_TAG	GENE	PRODUCT
-NZ_CP026802.1	523	snp	T	C	C:45 T:0								
-NZ_CP026802.1	1862	snp	G	A	A:49 G:0								
-NZ_CP026802.1	10134	snp	G	A	A:52 G:0								
-NZ_CP026802.1	11671	snp	G	A	A:64 G:0								
-NZ_CP026802.1	13113	snp	A	G	G:31 A:0								
-NZ_CP026802.1	16364	snp	T	C	C:42 T:0								
-NZ_CP026802.1	22709	del	TA	T	T:35 TA:0								
-NZ_CP026802.1	31415	ins	C	CCCAGCA	CCCAGCA:28 C:1								
-NZ_CP026802.1	31645	del	GT	G	G:25 GT:0								
-NZ_CP026802.1	32256	snp	C	T	T:42 C:0								
-NZ_CP026802.1	34384	snp	G	T	T:12 G:0								
-NZ_CP026802.1	38177	snp	A	C	C:47 A:0								
-NZ_CP026802.1	44156	snp	C	T	T:43 C:0								
-NZ_CP026802.1	53147	snp	T	C	C:55 T:0								
-NZ_CP026802.1	67031	snp	C	A	A:52 C:0								
-NZ_CP026802.1	67869	snp	C	T	T:23 C:0								
-NZ_CP026802.1	69761	snp	A	G	G:12 A:0								
-NZ_CP026802.1	74449	snp	C	T	T:38 C:0								
-NZ_CP026802.1	74679	snp	C	T	T:42 C:0
-```
-
-```bash
-head -20 m01_snps/snps.report.txt
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->NZ_CP026802.1:523 snp T=>C DP=45 Q=1499.17 [1]
-
-        491       501       511       521       531       541       551         
-ACAAGCTGGAACGGCAGCTCAATAAACTGCAGCACAAAGGTGAAGCACGTCGTGCCGCAACATCGGTGAAAGACGCCAAC
-........................................C.......................................
-...........        .....................C.......................................
-............       ,,,,,,,,,,,,,,,,,,,,,c,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,              ......................................
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,  ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-........................................C...    ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-........             ...................C.......................................
-,,,,,,,,,,,,,,,,,,,,,,,,, ,,,,,,,,,,,,,,c,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-........................................C..             ,,,,,,,,,,,,,,,,,,,,,,,,
-........................................C.......................................
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,c,,               ,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,c,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,c,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-........................................C.......................................
-```

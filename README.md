@@ -28,7 +28,6 @@ WinSCP v6.1 https://winscp.net/eng/download.php
 
 Bandage v0.8.1 http://rrwick.github.io/Bandage/
    - **Descripción:** Bandage es una herramienta para visualizar grafos de ensamblaje de genomas. Permite explorar las relaciones entre los contigs (fragmentos de ADN ensamblados) y puede ayudar a identificar problemas en el ensamblaje, como colapsos de repeticiones o errores. Su nombre es un acrónimo de "Bandage is a nice de novo assembly graph explorer".
-Canu v2.2 http://canu.readthedocs.org/
 
 Barrnap v0.9 https://github.com/tseemann/barrnap
    - **Descripción:** Barrnap (Bacterial rRNA prediction program) es un programa que predice las secuencias de ARN ribosomal (rRNA) en genomas bacterianos y arqueales. La identificación de los genes de rRNA es importante para estudios filogenéticos y metagenómicos.
@@ -38,7 +37,6 @@ CheckM v1.2.2 https://ecogenomics.github.io/CheckM/
 
 Flye v2.9.2 https://github.com/fenderglass/Flye/
    - **Descripción:** Flye es un ensamblador de novo enfocado en lecturas largas. Se destaca por su velocidad y eficiencia en el uso de memoria, lo que lo hace adecuado para ensamblar genomas grandes en recursos computacionales limitados.
-Kraken2 v2.1.3 https://ccb.jhu.edu/software/kraken2/
 
 Minimap2 v2.29.0 https://github.com/lh3/minimap2
    - **Descripción:** es un alineador de secuencias rápido y versátil diseñado para alinear secuencias largas de ADN o ARN, como lecturas de Nanopore y PacBio contra genomas de referencia o ensamblajes, así como lecturas largas entre sí para el ensamblaje de novo y lecturas cortas contra genomas; se destaca por su velocidad, sensibilidad robusta frente a errores en lecturas largas, su formato de salida PAF y una amplia gama de opciones de personalización mediante indexación eficiente basada en minimizadores, siendo una herramienta fundamental para diversas tareas de análisis genómico.

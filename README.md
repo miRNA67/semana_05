@@ -427,23 +427,38 @@ TGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGG
 
 ## 7.	Ensamblaje del genoma de los datos de secuenciación Nanopore generados en el curso
 
+> **Localización de los archivos:**
+
 ```bash
-tree genomics/trimming/nanopore/
+tree ~/genomics/trimming/nanopore/
 
 genomics/trimming/nanopore/
-├── b00_calls.bam
-├── b01_sup_nanofilt.fastq.gz
-├── b01_sup_porechop.fastq.gz
-├── b15_sup_nanofilt.fastq.gz
-└── b15_sup_porechop.fastq.gz
+├── b20_sup_nanofilt.fastq.gz
+├── b20_sup_porechop.fastq.gz
 
-0 directories, 5 files
+0 directories, 2 files
 ```
+
+> **Análisis de la contaminación:**
 
 ```bash
 cd ~/genomics/trimming/nanopore/
 
 conda activate quality
 
-seqkit rename -n b00_sup_nanofilt.fastq.gz -o b00_sup_rename.fastq.gz
+seqkit rename -n b20_sup_nanofilt.fastq.gz -o b20_rename.fastq.gz
+
+conda activate shotgun
+
+kraken2 -db /data/db/kraken2/k2_pluspf/ --threads 30 --use-names b20_rename.fastq.gz --output b20.kraken --report b20.report
+
+extract_kraken_reads.py -k b20.kraken -s b20_rename.fastq.gz -r b20.report -t 2759736 --include-children -o b20_filt.fastq --fastq-output
+```
+
+> **Análisis de integridad y contaminación:**
+
+```bash
+* Copiar los archivos de los genomas directamente en la carpeta de checkm
+
+checkm taxonomy_wf -t 60 -x fasta family Lactobacillaceae . . > Lactobacillaceae_filter.txt
 ```

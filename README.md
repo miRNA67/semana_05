@@ -458,7 +458,13 @@ extract_kraken_reads.py -k b20.kraken -s b20_rename.fastq.gz -r b20.report -t 27
 > **Análisis de integridad y contaminación:**
 
 ```bash
-* Copiar los archivos de los genomas directamente en la carpeta de checkm
+cd ~/genomics/validation/checkm
 
-checkm taxonomy_wf -t 60 -x fasta family Lactobacillaceae . . > Lactobacillaceae_filter.txt
+mkdir b20_assemblies
+
+cp ~/genomics/assembly/nanopore/b20_flye.fasta ~/genomics/assembly/nanopore/racon/b20_flye.racon.fasta b20_assemblies
+
+conda activate checkm
+
+checkm taxonomy_wf -t 60 -x fasta family Lactobacillaceae b20_assemblies . > checkm_lactobacillaceae.txt
 ```
